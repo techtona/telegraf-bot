@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "as-table": "^1.0.55",
+    "dotenv": "^8.2.0",
+    "mysql": "^2.17.1",
+    "strftime": "^0.10.0",
+    "telegraf": "^3.34.1"
+  },
+  "scripts": {
+    "start" : "node app.js"
+  },
+  "name": "node-telegram-bot",
+  "version": "1.0.0",
+  "main": "app.js",
+  "author": "Jati Pikukuh",
+  "license": "MIT"
+}
