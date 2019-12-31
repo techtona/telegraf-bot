@@ -1,8 +1,12 @@
 const Telegraf = require('telegraf')
 const dotenv = require('dotenv');
+dotenv.config();
 const mysql = require('mysql')
 asTable = require('as-table')
-dotenv.config();
+const Markup = require("telegraf/markup");
+const Stage = require("telegraf/stage");
+const session = require("telegraf/session");
+const WizardScene = require("telegraf/scenes/wizard");
 let connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USERNAME,
@@ -41,19 +45,45 @@ var id_ID = {
     }
 }
 var strftimeIT = strftime.localize(id_ID);
-function getLatestData(sensor_id, callback){
+getLatestData = (sensor_id, callback) => {
     let tamp = [];
-    connection.query('select id_sensor as id, value, date  from record where id_sensor = '+sensor_id+' order by date desc limit 1', function (error2, result2, fields2) {
+    connection.query('select id_sensor as id, value, date  from record where id_sensor = ' + sensor_id + ' order by date desc limit 1', function (error2, result2, fields2) {
         if (error2) throw error2;
-        result2.map((d) => {
-            tamp.push({id : d.id, value : d.value, date : strftimeIT('Pukul %H:%M - %A, %d %B %Y',d.date)});
-        });
-        callback(asTable.configure ({ maxTotalWidth: 92, delimiter: ' | ' })(tamp));
+        if (result2.length > 0){
+            result2.map((d) => {
+                tamp.push({id: d.id, value: d.value, date: strftimeIT('Pukul %H:%M - %A, %d %B %Y', d.date)});
+            });
+        }else{
+            tamp.push({error : "Sensor tidak ditemukan"})
+        }
+
+        callback(asTable.configure({maxTotalWidth: 92, delimiter: ' | '})(tamp));
     });
 }
-bot.help(function (ctx) {
-    getLatestData(6, function (msg) {
-        ctx.reply(msg);
-    });
+bot.start(ctx => {
+    ctx.reply(
+        `Halo ${ctx.from.first_name}, Apakah kamu mau memantau Avesbox ?`,
+        Markup.inlineKeyboard([
+            Markup.callbackButton("Cek Sensor", "LOG_SENSOR")
+        ]).extra()
+    );
 });
+
+// love calculator two-step wizard
+const logSensor = new WizardScene(
+    "log_sensor",
+    ctx => {
+        ctx.reply("Silahkan masukkan ID SENSOR"); // enter your name
+        return ctx.wizard.next();
+    },
+    ctx => {
+        getLatestData(ctx.message.text, function (msg) {
+            ctx.reply(msg);
+        });
+        return ctx.scene.leave();
+    }
+);
+const stage = new Stage([logSensor], {default: "log_sensor"});
+bot.use(session());
+bot.use(stage.middleware());
 bot.launch()
