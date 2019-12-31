@@ -17,7 +17,6 @@ bot.use(async (ctx, next) => {
     const ms = new Date() - start
     console.log('Response time: %sms', ms)
 })
-
 var strftime = require('strftime') // not required in browsers
 var id_ID = {
     days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
@@ -42,7 +41,6 @@ var id_ID = {
     }
 }
 var strftimeIT = strftime.localize(id_ID);
-
 function getLatestData(sensor_id, callback){
     let tamp = [];
     connection.query('select id_sensor as id, value, date  from record where id_sensor = '+sensor_id+' order by date desc limit 1', function (error2, result2, fields2) {
@@ -58,5 +56,4 @@ bot.help(function (ctx) {
         ctx.reply(msg);
     });
 });
-bot.hears('hi', (ctx) => ctx.reply('Hey there'))
 bot.launch()
