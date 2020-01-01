@@ -49,33 +49,47 @@ getLatestData = (sensor_id, callback) => {
     let tamp = [];
     connection.query('select id_sensor as id, value, date  from record where id_sensor = ' + sensor_id + ' order by date desc limit 1', function (error2, result2, fields2) {
         if (error2) throw error2;
-        if (result2.length > 0){
+        if (result2.length > 0) {
             result2.map((d) => {
                 tamp.push({id: d.id, value: d.value, date: strftimeIT('Pukul %H:%M - %A, %d %B %Y', d.date)});
             });
-        }else{
-            tamp.push({error : "Sensor tidak ditemukan"})
+        } else {
+            tamp.push({error: "Sensor tidak ditemukan"})
         }
 
         callback(asTable.configure({maxTotalWidth: 92, delimiter: ' | '})(tamp));
     });
 }
+getListSensor = (callback) => {
+    let tamp = [];
+    connection.query('select id_sensor as id, alamat as lokasi\n' +
+        'from  sensor s\n' +
+        'join kandang k on s.id_kandang = k.id_kandang\n' +
+        'where k.deleted_at is null and s.deleted_at is null;', function (error2, result2, fields2) {
+        if (error2) throw error2;
+        if (result2.length > 0) {
+            result2.map((d) => {
+                tamp.push(d);
+            });
+        } else {
+            tamp.push({error: "Belum ada sensor"})
+        }
+
+        callback(asTable.configure({maxTotalWidth: 192, delimiter: ' | '})(tamp));
+    });
+}
+
 bot.start(ctx => {
     ctx.reply(
-        `Halo ${ctx.from.first_name}, Apakah kamu mau memantau Avesbox ?`,
-        Markup.inlineKeyboard([
-            Markup.callbackButton("Cek Sensor", "LOG_SENSOR")
-        ]).extra()
+        `Halo ${ctx.from.first_name}, Silahkan Pilih ID Sensor untuk memantau Avesbox ?`,
+        getListSensor(function (msg) {
+            ctx.reply(msg);
+        })
     );
 });
 
-// love calculator two-step wizard
 const logSensor = new WizardScene(
     "log_sensor",
-    ctx => {
-        ctx.reply("Silahkan masukkan ID SENSOR"); // enter your name
-        return ctx.wizard.next();
-    },
     ctx => {
         getLatestData(ctx.message.text, function (msg) {
             ctx.reply(msg);
@@ -83,7 +97,9 @@ const logSensor = new WizardScene(
         return ctx.scene.leave();
     }
 );
+
 const stage = new Stage([logSensor], {default: "log_sensor"});
 bot.use(session());
 bot.use(stage.middleware());
-bot.launch()
+
+bot.launch();
