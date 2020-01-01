@@ -62,9 +62,11 @@ getLatestData = (sensor_id, callback) => {
 }
 getListSensor = (callback) => {
     let tamp = [];
-    connection.query('select id_sensor as id, alamat as lokasi\n' +
+    connection.query('select id_sensor as id, rs.nama as jenis, alamat\n' +
         'from  sensor s\n' +
         'join kandang k on s.id_kandang = k.id_kandang\n' +
+        'join device d on s.id_device = d.id_device\n' +
+        'join ref_sensor rs on d.id_ref_sensor = rs.id_ref_sensor\n' +
         'where k.deleted_at is null and s.deleted_at is null;', function (error2, result2, fields2) {
         if (error2) throw error2;
         if (result2.length > 0) {
