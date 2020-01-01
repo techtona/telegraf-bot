@@ -81,7 +81,7 @@ getListSensor = (callback) => {
 
 bot.start(ctx => {
     ctx.reply(
-        `Halo ${ctx.from.first_name}, Silahkan Pilih ID Sensor untuk memantau Avesbox ?`,
+        `Halo ${ctx.from.first_name}, Silahkan Pilih ID Sensor untuk memantau Avesbox`,
         getListSensor(function (msg) {
             ctx.reply(msg);
         })
